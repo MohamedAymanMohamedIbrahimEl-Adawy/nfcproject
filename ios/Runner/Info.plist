@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>The app needs NFC to control smart devices, such as adjusting thermostat settings or unlocking doors. NFC also used To Transfer Peer-to-peer Data</string>
 </dict>
 </plist>
