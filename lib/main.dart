@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +30,7 @@ class NFCReaderScreen extends StatefulWidget {
 }
 
 class _NFCReaderScreenState extends State<NFCReaderScreen> {
-  String nfcData = "Tap an NFC tag";
+  String? nfcData = "Tap an NFC tag";
 
   /// This method creates a proper NDEF Text Record for version ^4.0.2
   /// Create a proper NDEF Text Record using the new constructor format
@@ -93,10 +94,16 @@ class _NFCReaderScreenState extends State<NFCReaderScreen> {
 
   void onDiscoverNdef(NfcTag tag) async {
     try {
+      print("we are here");
       // Process NFC tag, When an NFC tag is discovered, print its data to the console.
-      debugPrint('NFC Tag Detected: ${tag.toString()}');
+      log('NFC Tag Detected: ${tag.toString()}');
+
+      if (tag == null) {
+        return;
+      }
       // Check if the tag supports NDEF (NFC Data Exchange Format)
       final ndef = Ndef.from(tag);
+      nfcData = ndef?.toString();
 
       if (ndef == null) {
         debugPrint('Tag is not NDEF-compatible');
@@ -105,6 +112,8 @@ class _NFCReaderScreenState extends State<NFCReaderScreen> {
 
       // Read NDEF message
       final message = await ndef.read();
+      nfcData = message?.toString() ?? 'No NDEF message found on tag';
+
       if (message == null) {
         debugPrint('No NDEF message found on tag');
         return;
@@ -117,12 +126,14 @@ class _NFCReaderScreenState extends State<NFCReaderScreen> {
           nfcData = 'Type: ${record.type}, Payload: ${record.payload}';
         });
       }
+
+      await NfcManager.instance.stopSession();
     } catch (e) {
       debugPrint('Error reading NFC tag: $e');
     } finally {
       await NfcManager.instance.stopSession();
     }
-    NfcManager.instance.stopSession();
+    await NfcManager.instance.stopSession();
   }
 
   @override
@@ -133,7 +144,7 @@ class _NFCReaderScreenState extends State<NFCReaderScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(nfcData, style: TextStyle(fontSize: 18)),
+            Text(nfcData ?? "Can't parse data", style: TextStyle(fontSize: 18)),
             SizedBox(height: 20),
             ElevatedButton(onPressed: startNFC, child: Text("Scan NFC Tag")),
             ElevatedButton(
